@@ -24,22 +24,25 @@ export default class Slide {
     if (event.type === "mousedown") {
       event.preventDefault();
       this.dist.startX = event.clientX;
-      moveType = 'mousemove';
+      moveType = "mousemove";
     } else {
-        this.dist.startX = event.changedTouches[0].clientX;
-        moveType = 'touchmove'
+      this.dist.startX = event.changedTouches[0].clientX;
+      moveType = "touchmove";
     }
     this.wrapper.addEventListener(moveType, this.onMove);
   }
 
   onMove(event) {
-    const pointerPosition = (event.type === 'mousemove') ? event.clientX : event.changedTouches[0].clientX;
+    const pointerPosition =
+      event.type === "mousemove"
+        ? event.clientX
+        : event.changedTouches[0].clientX;
     const finalPosition = this.updatePosition(pointerPosition);
     this.moveSlide(finalPosition);
   }
 
   onEnd(event) {
-    const moveType = (event.type === 'mouseup') ? 'mousemove' : 'touchmove';
+    const moveType = event.type === "mouseup" ? "mousemove" : "touchmove";
     this.wrapper.removeEventListener("mousemove", this.onMove);
     this.dist.finalPosition = this.dist.movePosition;
   }
@@ -56,9 +59,45 @@ export default class Slide {
     this.onEnd = this.onEnd.bind(this);
   }
 
+  // Slide Config
+
+  slidePosition(slide) {
+    const margin = (this.wrapper.offsetWidth - slide.offsetWidth) / 2;
+    return -(slide.offsetLeft - margin);
+  }
+
+  slidesConfig() {
+    this.slideArray = [...this.slide.children].map((element) => {
+      const position = this.slidePosition(element);
+      return {
+        position,
+        element,
+      };
+    });
+  }
+
+  changeSlide(index) {
+    const activeSlide = this.slideArray[index];
+    this.moveSlide(this.slideArray[index].position);
+    this.slidesIndexNav(index)
+    this.dist.finalPosition = activeSlide.position;
+  }
+
+  slidesIndexNav(index) {
+    const last = this.slideArray.length - 1;
+    this.index = {
+      prev: index ? index - 1 : undefined,
+      active: index,
+      next: index === last ? undefined : index + 1,
+    };
+  }
+
+
   init() {
     this.bindEvents();
     this.addSlideEvents();
+    this.slidesConfig();
+    this.changeSlide(4);
     return this;
   }
 }
